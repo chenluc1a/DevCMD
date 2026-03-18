@@ -566,6 +566,13 @@
             </div>
         </div>
         <div class="header-right">
+            <button id="exportBtn" class="btn" title="데이터 내보내기 (JSON)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </button>
+            <button id="importBtn" class="btn" title="데이터 가져오기 (JSON)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/></svg>
+            </button>
+            <input type="file" id="importFile" class="hidden" accept=".json">
             <button id="favOnlyBtn" class="btn btn-fav">
                 <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                 즐겨찾기
@@ -1044,6 +1051,71 @@
             favOnly = !favOnly;
             document.getElementById('favOnlyBtn').classList.toggle('active', favOnly);
             renderAll();
+        };
+
+        // --- Export / Import ---
+        document.getElementById('exportBtn').onclick = () => {
+            const data = {
+                version: "1.1",
+                exported_at: new Date().toISOString(),
+                favorites: [...favorites],
+                custom_commands: customCmds,
+                next_id: nextId
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `devcmd_export_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        document.getElementById('importBtn').onclick = () => {
+            document.getElementById('importFile').click();
+        };
+
+        document.getElementById('importFile').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (!data.custom_commands || !Array.isArray(data.custom_commands)) {
+                        throw new Error('올바르지 않은 데이터 형식입니다.');
+                    }
+
+                    if (confirm('데이터를 가져오시겠습니까? 기존 커스텀 명령어에 병합됩니다.')) {
+                        // Merge logic: Add if ID doesn't exist in customCmds
+                        const existingIds = new Set(customCmds.map(c => c.id));
+                        data.custom_commands.forEach(c => {
+                            if (!existingIds.has(c.id)) {
+                                customCmds.push(c);
+                            }
+                        });
+
+                        // Merge favorites
+                        if (data.favorites && Array.isArray(data.favorites)) {
+                            data.favorites.forEach(id => favorites.add(id));
+                        }
+
+                        // Update nextId
+                        if (data.next_id && typeof data.next_id === 'number') {
+                            nextId = Math.max(nextId, data.next_id);
+                        }
+
+                        persist();
+                        renderAll();
+                        alert('데이터를 성공적으로 가져왔습니다.');
+                    }
+                } catch (err) {
+                    alert('파일 읽기 실패: ' + err.message);
+                }
+                e.target.value = ''; // Reset input
+            };
+            reader.readAsText(file);
         };
 
         // --- Keyboard Shortcuts ---
