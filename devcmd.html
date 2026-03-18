@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevCMD — 스택별 개발 명령어 레퍼런스</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 배경 */
+            --bg:        #f7f6f2;   /* 전체 배경 (따뜻한 크림) */
+            --surface:   #ffffff;   /* 카드, 헤더, 사이드바 */
+            --surface2:  #f2f0eb;   /* hover 배경, 뱃지 */
+
+            /* 경계선 */
+            --border:    #e2ddd5;
+            --border2:   #cdc8be;   /* hover border */
+
+            /* 텍스트 */
+            --text:      #1c1a17;   /* 제목, 주요 텍스트 */
+            --text2:     #4a4640;   /* 보조 텍스트 */
+            --text3:     #8c877f;   /* 힌트, 레이블 */
+
+            /* 액센트 */
+            --accent:    #d4500a;   /* 주황 — 버튼, 코드 border, 로고 */
+            --accent-bg: #fef3ec;
+            --accent-bd: #f5c9a8;
+
+            /* 폰트 */
+            --font-logo: 'Fraunces', serif;
+            --font-sans: 'Noto Sans KR', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* 여백 */
+            --header-h: 60px;
+            --sidebar-w: 180px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-h);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: var(--font-logo);
+            font-weight: 600;
+            font-style: italic;
+            font-size: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-container input {
+            width: 100%;
+            height: 36px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0 12px 0 34px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            outline: none;
+        }
+
+        .search-container input:focus {
+            border-color: var(--accent-bd);
+            background: var(--surface);
+        }
+
+        .search-container svg {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: var(--text3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--surface2);
+            border-color: var(--border2);
+        }
+
+        .btn-fav.active {
+            color: #d4a017;
+            border-color: #f5d76e;
+            background: #fffdf5;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #b54508;
+        }
+
+        /* Navigation (Tabs) */
+        .stack-tabs {
+            position: fixed;
+            top: var(--header-h);
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 90;
+            scrollbar-width: none;
+        }
+
+        .stack-tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            padding: 0 12px;
+            height: 30px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+            color: var(--text2);
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+        }
+
+        .tab.active {
+            background: var(--accent-bg);
+            color: var(--accent);
+            border-color: var(--accent-bd);
+        }
+
+        /* Sidebar */
+        aside {
+            position: fixed;
+            top: calc(var(--header-h) + 44px);
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            overflow-y: auto;
+            z-index: 80;
+        }
+
+        .sidebar-section-title {
+            padding: 0 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .tag-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            color: var(--text2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.1s;
+        }
+
+        .tag-item:hover {
+            background: var(--surface2);
+        }
+
+        .tag-item.active {
+            color: var(--accent);
+            font-weight: 600;
+            background: var(--accent-bg);
+        }
+
+        .tag-item span {
+            font-family: var(--font-mono);
+            font-size: 11px;
+        }
+
+        /* Content Area */
+        main {
+            margin-top: calc(var(--header-h) + 44px);
+            margin-left: var(--sidebar-w);
+            padding: 32px 40px;
+            min-height: 100vh;
+        }
+
+        .stack-group {
+            margin-bottom: 48px;
+        }
+
+        .stack-group-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .stack-group-header h2 {
+            font-family: var(--font-logo);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stack-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .category-section {
+            margin-bottom: 32px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        /* Command Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: var(--border2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text3);
+            transition: all 0.1s;
+        }
+
+        .action-btn:hover {
+            background: var(--surface2);
+            color: var(--text2);
+        }
+
+        .action-btn.fav-btn.active {
+            color: #d4a017;
+            border-color: #f5d76e;
+            background: #fffdf5;
+        }
+
+        .card-when {
+            font-size: 13px;
+            color: var(--text2);
+            line-height: 1.5;
+        }
+
+        .card-cmd-box {
+            background: var(--surface2);
+            border-left: 3px solid var(--accent);
+            padding: 12px;
+            border-radius: 0 6px 6px 0;
+            position: relative;
+        }
+
+        .card-cmd {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .tag-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Tag Colors */
+        .t-setup    { background: #edf5fc; color: #1d6fa4 }
+        .t-run      { background: #eaf5ef; color: #1a7a50 }
+        .t-db       { background: #f0ecfc; color: #6340c0 }
+        .t-build    { background: #fef8e6; color: #a06a00 }
+        .t-deploy   { background: #f0ecfc; color: #6340c0 }
+        .t-debug    { background: #fcecea; color: #c0302a }
+        .t-test     { background: #e9f6f5; color: #0d7a78 }
+        .t-git      { background: #fef3ec; color: #d4500a }
+        .t-package  { background: #f4edfb; color: #7c3aed }
+        .t-docker   { background: #edf5fc; color: #1d6fa4 }
+        .t-env      { background: #eaf5ef; color: #1a7a50 }
+        .t-migrate  { background: #f0ecfc; color: #6340c0 }
+        .t-ci       { background: #fef3ec; color: #d4500a }
+        .t-log      { background: #fef8e6; color: #a06a00 }
+        .t-network  { background: #e9f6f5; color: #0d7a78 }
+        .t-security { background: #fcecea; color: #c0302a }
+        .t-perf     { background: #f4edfb; color: #7c3aed }
+        .t-custom   { background: #f2f0eb; color: #4a4640 }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .modal {
+            background: var(--surface);
+            width: 500px;
+            max-width: 90vw;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text3);
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-bd);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .tag-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .tag-choice {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            cursor: pointer;
+        }
+
+        .tag-choice.selected {
+            border-color: var(--accent-bd);
+            background: var(--accent-bg);
+            color: var(--accent);
+        }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 0;
+            color: var(--text3);
+            gap: 12px;
+        }
+
+        /* Utils */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <a href="#" class="logo">DevCMD</a>
+            <div class="search-container">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" id="searchInput" placeholder="명령어, 설명 검색 (/)">
+            </div>
+        </div>
+        <div class="header-right">
+            <button id="favOnlyBtn" class="btn btn-fav">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                즐겨찾기
+            </button>
+            <button id="addBtn" class="btn btn-primary">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                추가
+            </button>
+        </div>
+    </header>
+
+    <div id="stackTabs" class="stack-tabs">
+        <!-- Tabs injected here -->
+    </div>
+
+    <aside>
+        <div class="sidebar-section-title">Tags</div>
+        <div id="tagBar">
+            <!-- Tags injected here -->
+        </div>
+    </aside>
+
+    <main id="mainContent">
+        <!-- Command sections injected here -->
+        <div id="emptyState" class="empty-state">
+            <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <p>일치하는 명령어가 없습니다.</p>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">명령어 추가</h3>
+                <button id="closeModal" class="action-btn">✕</button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>스택 *</label>
+                    <select id="fStack"></select>
+                </div>
+                <div class="form-group">
+                    <label>카테고리</label>
+                    <input type="text" id="fCategory" placeholder="예: 빌드, 마이그레이션">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>명령어 제목 *</label>
+                <input type="text" id="fDesc" placeholder="어떤 명령어인가요?">
+            </div>
+            <div class="form-group">
+                <label>언제 사용하나요?</label>
+                <textarea id="fWhen" placeholder="상황이나 주의사항을 적어주세요."></textarea>
+            </div>
+            <div class="form-group">
+                <label>명령어 *</label>
+                <textarea id="fCmd" placeholder="실제 실행할 명령어를 입력하세요."></textarea>
+            </div>
+            <div class="form-group">
+                <label>태그 선택</label>
+                <div id="tagSelector" class="tag-selector"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBtn" class="btn">취소</button>
+                <button id="saveBtn" class="btn btn-primary">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Definitions ---
+        const STACKS = [
+            { id: 'all',     label: '전체',     color: '#8c877f' },
+            { id: 'git',     label: 'Git',      color: '#d4500a' },
+            { id: 'docker',  label: 'Docker',   color: '#1d6fa4' },
+            { id: 'django',  label: 'Django',   color: '#1a7a50' },
+            { id: 'fastapi', label: 'FastAPI',  color: '#0d7a78' },
+            { id: 'nextjs',  label: 'Next.js',  color: '#1c1a17' },
+            { id: 'flutter', label: 'Flutter',  color: '#6340c0' },
+            { id: 'python',  label: 'Python',   color: '#a06a00' },
+            { id: 'npm',     label: 'npm/yarn', color: '#c0302a' },
+            { id: 'rust',    label: 'Rust',     color: '#b8420a' },
+            { id: 'linux',   label: 'Linux/CLI',color: '#4a4640' },
+            { id: 'custom',  label: '커스텀',    color: '#8c877f' }
+        ];
+
+        const ALL_TAGS = ['setup', 'run', 'build', 'deploy', 'db', 'migrate', 'test', 'debug', 'git', 'package', 'docker', 'env', 'ci', 'log', 'network', 'security', 'perf', 'custom'];
+
+        const CMDS = [
+            // Example Data (Will be expanded)
+            { id: 62, stack: 'fastapi', category: 'Alembic (DB)', desc: '마이그레이션 생성 → 적용 → 롤백', when: 'SQLAlchemy 모델 변경을 DB에 반영할 때. autogenerate가 모델과 DB 스키마 차이를 자동 감지.', cmd: 'alembic init alembic\nalembic revision --autogenerate -m "add users"\nalembic upgrade head\nalembic downgrade -1', tags: ['db', 'migrate'] },
+            { id: 1, stack: 'git', category: '기초', desc: '저장소 초기화', when: '새로운 프로젝트를 시작하거나 기존 디렉토리를 Git 저장소로 만들 때.', cmd: 'git init', tags: ['setup', 'git'] },
+            { id: 2, stack: 'git', category: '기초', desc: '원격 저장소 클론', when: 'GitHub 등의 원격 저장소를 로컬로 복제할 때.', cmd: 'git clone <repository_url>', tags: ['setup', 'git'] },
+            { id: 20, stack: 'docker', category: '컨테이너 관리', desc: '컨테이너 중지 및 볼륨 삭제', when: 'Docker Compose로 실행 중인 환경을 완전히 정리하고 싶을 때.', cmd: 'docker compose down -v', tags: ['run', 'docker'] }
+        ];
+
+        // --- State Management ---
+        let activeStack = 'all';
+        let activeTag   = null;
+        let favOnly     = false;
+        let editId      = null;
+        let selTags     = new Set();
+
+        let customCmds = JSON.parse(localStorage.getItem('dcmd_custom') || '[]');
+        let favorites  = new Set(JSON.parse(localStorage.getItem('dcmd_favs') || '[]'));
+        let nextId     = parseInt(localStorage.getItem('dcmd_nextid') || '2000');
+
+        // --- Core Logic ---
+        function persist() {
+            localStorage.setItem('dcmd_custom', JSON.stringify(customCmds));
+            localStorage.setItem('dcmd_favs',   JSON.stringify([...favorites]));
+            localStorage.setItem('dcmd_nextid', String(nextId));
+        }
+
+        function getAllCmds() {
+            return [...CMDS, ...customCmds];
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('stackTabs');
+            container.innerHTML = STACKS.map(s => `
+                <div class="tab ${activeStack === s.id ? 'active' : ''}" onclick="setStack('${s.id}')">
+                    ${s.label}
+                </div>
+            `).join('');
+        }
+
+        function renderTagBar() {
+            const container = document.getElementById('tagBar');
+            container.innerHTML = `
+                <div class="tag-item ${activeTag === null ? 'active' : ''}" onclick="setTag(null)">
+                    <span>#전체</span>
+                </div>
+                ${ALL_TAGS.map(t => `
+                    <div class="tag-item ${activeTag === t ? 'active' : ''}" onclick="setTag('${t}')">
+                        <span>#${t}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function renderAll() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const main = document.getElementById('mainContent');
+            const empty = document.getElementById('emptyState');
+            
+            let list = getAllCmds().filter(c => {
+                if (favOnly && !favorites.has(c.id)) return false;
+                if (activeStack !== 'all' && c.stack !== activeStack) return false;
+                if (activeTag && !c.tags.includes(activeTag)) return false;
+                if (q && !matchesQuery(c, q)) return false;
+                return true;
+            });
+
+            if (list.length === 0) {
+                main.querySelectorAll('.stack-group').forEach(el => el.remove());
+                empty.style.display = 'flex';
+                return;
+            }
+            empty.style.display = 'none';
+
+            // Grouping: Stack -> Category
+            const grouped = {};
+            list.forEach(c => {
+                if (!grouped[c.stack]) grouped[c.stack] = {};
+                if (!grouped[c.stack][c.category || '기타']) grouped[c.stack][c.category || '기타'] = [];
+                grouped[c.stack][c.category || '기타'].push(c);
+            });
+
+            // Re-render only if needed (for simplicity, we clear and redraw)
+            main.querySelectorAll('.stack-group').forEach(el => el.remove());
+
+            // Sorted stacks (as per STACKS array order)
+            STACKS.forEach(s => {
+                if (grouped[s.id]) {
+                    const stackEl = document.createElement('div');
+                    stackEl.className = 'stack-group';
+                    stackEl.innerHTML = `
+                        <div class="stack-group-header">
+                            <span class="stack-badge" style="background:${s.color}">${s.id}</span>
+                            <h2>${s.label}</h2>
+                        </div>
+                    `;
+                    
+                    Object.entries(grouped[s.id]).forEach(([cat, items]) => {
+                        const catEl = document.createElement('div');
+                        catEl.className = 'category-section';
+                        catEl.innerHTML = `<div class="category-title">${cat}</div>`;
+                        
+                        const grid = document.createElement('div');
+                        grid.className = 'command-grid';
+                        
+                        items.forEach(item => {
+                            grid.appendChild(createCard(item));
+                        });
+                        
+                        catEl.appendChild(grid);
+                        stackEl.appendChild(catEl);
+                    });
+                    
+                    main.appendChild(stackEl);
+                }
+            });
+        }
+
+        function createCard(c) {
+            const el = document.createElement('div');
+            el.className = 'card';
+            const isFav = favorites.has(c.id);
+            const isCustom = c.id >= 2000;
+
+            el.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${escapeHtml(c.desc)}</div>
+                    <div class="card-actions">
+                        <button class="action-btn fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${c.id}, event)">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </button>
+                        <button class="action-btn" onclick="copyCmd('${escapeJs(c.cmd)}', event)">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 4v12a2 2 0 002 2h8a2 2 0 002-2V7.24a2 2 0 00-.59-1.42L15.42 1.83a2 2 0 00-1.42-.59H10a2 2 0 00-2 2z"/><path d="M16 18v2a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2"/></svg>
+                        </button>
+                        <button class="action-btn" onclick="openEditModal(${c.id}, event)">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        ${isCustom ? `
+                        <button class="action-btn" onclick="deleteCmd(${c.id}, event)">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>` : ''}
+                    </div>
+                </div>
+                ${c.when ? `<div class="card-when">${escapeHtml(c.when)}</div>` : ''}
+                <div class="card-cmd-box">
+                    <code class="card-cmd">${escapeHtml(c.cmd)}</code>
+                </div>
+                <div class="card-tags">
+                    ${c.tags.map(t => `<span class="tag-badge t-${t}">#${t}</span>`).join('')}
+                </div>
+            `;
+            return el;
+        }
+
+        function matchesQuery(c, q) {
+            return c.desc.toLowerCase().includes(q)
+                || c.cmd.toLowerCase().includes(q)
+                || (c.when || '').toLowerCase().includes(q)
+                || c.tags.some(t => t.includes(q));
+        }
+
+        // --- Event Handlers ---
+        window.setStack = (id) => { activeStack = id; renderTabs(); renderAll(); };
+        window.setTag = (t) => { activeTag = t; renderTagBar(); renderAll(); };
+
+        window.toggleFav = (id, e) => {
+            e.stopPropagation();
+            if (favorites.has(id)) favorites.delete(id);
+            else favorites.add(id);
+            persist();
+            renderAll();
+        };
+
+        window.copyCmd = (text, e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(text);
+            const btn = e.currentTarget;
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="#1a7a50" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+            setTimeout(() => btn.innerHTML = originalIcon, 1500);
+        };
+
+        window.deleteCmd = (id, e) => {
+            e.stopPropagation();
+            if (confirm('정말 삭제하시겠습니까?')) {
+                customCmds = customCmds.filter(c => c.id !== id);
+                favorites.delete(id);
+                persist();
+                renderAll();
+            }
+        };
+
+        // --- Modal Logic ---
+        const modal = document.getElementById('modalOverlay');
+        const fStack = document.getElementById('fStack');
+        const tagSelector = document.getElementById('tagSelector');
+
+        function initModal() {
+            fStack.innerHTML = STACKS.filter(s => s.id !== 'all').map(s => `
+                <option value="${s.id}">${s.label}</option>
+            `).join('');
+
+            tagSelector.innerHTML = ALL_TAGS.map(t => `
+                <div class="tag-choice" data-tag="${t}" onclick="toggleTagChoice('${t}')">#${t}</div>
+            `).join('');
+        }
+
+        window.toggleTagChoice = (t) => {
+            if (selTags.has(t)) selTags.delete(t);
+            else selTags.add(t);
+            updateTagSelectorUI();
+        };
+
+        function updateTagSelectorUI() {
+            tagSelector.querySelectorAll('.tag-choice').forEach(el => {
+                el.classList.toggle('selected', selTags.has(el.dataset.tag));
+            });
+        }
+
+        document.getElementById('addBtn').onclick = () => openModal();
+        document.getElementById('closeModal').onclick = closeModal;
+        document.getElementById('cancelBtn').onclick = closeModal;
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+        function openModal(item = null) {
+            editId = item ? item.id : null;
+            document.getElementById('modalTitle').innerText = editId ? '명령어 수정' : '명령어 추가';
+            
+            document.getElementById('fStack').value = item ? item.stack : (activeStack === 'all' ? 'git' : activeStack);
+            document.getElementById('fCategory').value = item ? item.category : '';
+            document.getElementById('fDesc').value = item ? item.desc : '';
+            document.getElementById('fWhen').value = item ? item.when : '';
+            document.getElementById('fCmd').value = item ? item.cmd : '';
+            
+            selTags = new Set(item ? item.tags : []);
+            updateTagSelectorUI();
+            
+            modal.style.display = 'flex';
+        }
+
+        window.openEditModal = (id, e) => {
+            e.stopPropagation();
+            const item = getAllCmds().find(c => c.id === id);
+            openModal(item);
+        };
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('saveBtn').onclick = () => {
+            const stack = document.getElementById('fStack').value;
+            const desc = document.getElementById('fDesc').value.trim();
+            const cmd = document.getElementById('fCmd').value.trim();
+            
+            if (!desc || !cmd) {
+                alert('제목과 명령어는 필수 입력 사항입니다.');
+                return;
+            }
+
+            const payload = {
+                stack,
+                category: document.getElementById('fCategory').value.trim() || '기타',
+                desc,
+                when: document.getElementById('fWhen').value.trim(),
+                cmd,
+                tags: [...selTags]
+            };
+
+            if (editId !== null) {
+                const idx = customCmds.findIndex(c => c.id === editId);
+                if (idx >= 0) {
+                    customCmds[idx] = { ...customCmds[idx], ...payload };
+                } else {
+                    // Editing a built-in command -> Save as a new custom command
+                    customCmds.push({ id: nextId++, ...payload });
+                }
+            } else {
+                customCmds.push({ id: nextId++, ...payload });
+            }
+
+            persist();
+            closeModal();
+            renderAll();
+        };
+
+        // --- Search & Fav Toggle ---
+        document.getElementById('searchInput').oninput = renderAll;
+        document.getElementById('favOnlyBtn').onclick = () => {
+            favOnly = !favOnly;
+            document.getElementById('favOnlyBtn').classList.toggle('active', favOnly);
+            renderAll();
+        };
+
+        // --- Keyboard Shortcuts ---
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // --- Helpers ---
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function escapeJs(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+        }
+
+        // --- Init ---
+        initModal();
+        renderTabs();
+        renderTagBar();
+        renderAll();
+    </script>
+</body>
+</html>
